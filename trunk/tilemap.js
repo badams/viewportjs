@@ -18,11 +18,12 @@
     this.x = this.coords.x;
     this.y = this.coords.y
     this.old = {x : 0, y: 0};
+    this.objects = [];
+    this.objectTypes = {};
     return this;
   };
 
   this.TileMap.prototype = {
-
     /**
      * returns a cropped section of map data based 
      * on the parameters.
@@ -94,7 +95,14 @@
      * @param object
      */
     loadMap : function (map_object) {
+
       this.data = map_object.data;
+
+      if (undefined !== map_object.objectTypes) {
+        for (var prop in map_object.objectTypes) {
+          this.objectTypes[prop] = map_object.objectTypes[prop];
+        }  
+      }
     },
 
     /**
@@ -103,5 +111,123 @@
      * @access public
      */
     setCenter : function () {},
+
+    pointIsVisible : function () {},
+    pointIsOnMap : function () {},
+
+    spawnObject : function (props) {
+      var obj = new this.GameObject();
+
+      if (typeof props === 'string') {
+        if (undefined !== this.objectTypes[props]) {
+          props = this.objectTypes[props]
+        } else {
+          props = this.objectTypes['default'];
+        }
+      }
+
+      if (typeof props === 'object') {
+        for (var prop in props) {
+          obj[prop] = props[prop];
+        }
+      }
+
+      //spawn object on player
+      obj.x = window.player.x;
+      obj.y = window.player.y - 32;
+      
+      obj.id = this.objects.length;
+
+      this.objects.push(obj);
+
+    },
+
+    updateObjects : function () {
+      var objs = this.objects;
+      for (var i = 0, l = objs.length; i < l; i++) {
+        var obj = objs[i];
+
+        if (typeof obj.update === 'function') {
+          obj.update();
+        }
+
+        obj.map_x = this.scroll.x + (obj.x / this.tileset.tileWidth) >> 0; //FIXME, these coords are wrong.
+        obj.map_y = this.scroll.y + (obj.y / this.tileset.tileWidth) >> 0;
+
+        obj.old_x = obj.x;
+        obj.old_y = obj.y;
+
+        obj.x += obj.vel_x;
+        obj.y += obj.vel_y;
+
+        if (true === obj.gravity && 0 < this.gravity) {
+          obj.vel_y += this.gravity;
+        }
+
+        if (true === obj.collision) {
+          this.collisionCheck(obj);
+        }
+      }
+    },
+
+    drawObjects : function () {
+      var objs = this.objects;
+      for (var i = 0, l = objs.length; i < l; i++) {
+        this.tileset.drawTile(12, 9, objs[i].x, objs[i].y, 1);
+      }
+    },
+
+    collisionCheck : function (obj) {
+      var tiles = this.getSection(obj.map_x - 1, obj.map_y - 1, 3, 3);
+      miniMap.loadMap({data : tiles});
+
+        if (tiles[1][1] !== 0) {
+          obj.y = obj.old_y;
+          obj.x = obj.old_x;
+
+          obj.vel_y = 0;
+          obj.vel_x = 0;
+        }
+
+        if (tiles[1][2] !== 0 && obj.vel_x > 0) {
+          obj.vel_x = 0;
+        }
+
+        if (tiles[2][1] !== 0) {
+          obj.vel_y = 0;
+          obj.y = obj.old_y;
+          if (obj.vel_x > 0) {
+            obj.vel_x -= obj.friction;
+          } else if (obj.vel_x < 0) {
+            obj.vel_x += obj.friction;
+          }
+        }
+
+        if (tiles[0][1] !== 0 && tiles[0][2] && obj.vel_y < 0) {
+          obj.vel_y = obj.vel_y * -1;
+        }
+    }
+
   };
+
+  
+  this.TileMap.prototype.GameObject = function () {
+
+    this.x = 0;
+    this.y = 0;
+    this.old_x = 0;
+    this.old_y = 0;
+    this.map_x = 0;
+    this.map_y = 0
+    this.vel_x = 0;
+    this.vel_y = 0;
+    this.width = 0;
+    this.height = 0;
+    this.friction = 1;
+    this.gravity = true;
+    this.collision = true;
+
+    return this;
+  };
+
 }).call(window);
