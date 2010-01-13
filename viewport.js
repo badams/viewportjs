@@ -1,26 +1,14 @@
 (function () {
 
-  var stack = null;
-
-  var createViewPort = function (id, width, height) {
-  
-    var port = document.createElement('canvas');
-
-    port.setAttribute('id', id);
-    port.setAttribute('width', width);
-    port.setAttribute('height', height);
-
-    if (null === stack) {
-      stack = window.document.createElement('div');
-      stack.setAttribute('id','viewport-stack');
-      document.body.appendChild(stack);
-    }
-
-    stack.appendChild(port);
-
-    return port;
-  };
-
+  /**
+   * ViewPort Constructor.
+   * 
+   * @access public
+   * @param string; canvas id
+   * @param int
+   * @param int
+   * @return object
+   */
   this.ViewPort = function (id, width, height) {  
     this.width = width;
     this.height = height;
@@ -32,9 +20,6 @@
   };
 
   this.ViewPort.prototype  = {
-    /**
-     *
-     */
     start : function () {
       var self = this;
       if (null === self.interval) {
@@ -45,26 +30,43 @@
         }, 10);
       }
     },
-
-    /**
-     *
-     */
     stop : function () {
       window.clearInterval(this.interval);
       this.interval = null;
     },
-
-    /**
-     *
-     */
     draw : function (fn) {
       this.onDraw = fn;
-    },
+    }
+  };
 
-    pause : function () {},    
-    show : function () {}
+  /**
+   * Creates a new canvas element in the viewport stack, 
+   * if no stack exists one is created.
+   *
+   * @access private
+   * @param string; canvas id
+   * @param int
+   * @param int
+   */
+  var createViewPort = function (id, width, height) {
+  
+    var port = document.createElement('canvas');
+
+    port.setAttribute('id', id);
+    port.setAttribute('width', width);
+    port.setAttribute('height', height);
+  
+    var stack = document.getElementById('viewport-stack');
+
+    if (null === stack) {
+      stack = window.document.createElement('div');
+      stack.setAttribute('id','viewport-stack');
+      document.body.appendChild(stack);
+    }
+
+    stack.appendChild(port);
+    return port;
   };
 
 }).call(window);
-
 
