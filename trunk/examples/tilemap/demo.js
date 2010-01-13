@@ -16,10 +16,8 @@ var startDemo = function () {
   var map = new TileMap(myScreen, tiles);
   map.loadMap(window.map_data);
   
- var mtiles = new TileSet(mini, {image :'sprites.bmp', margin : 2, tileMargin : 2, tileWidth : 32, tileHeight : 32 });
+  var mtiles = new TileSet(mini, {image :'sprites.bmp', margin : 2, tileMargin : 2, tileWidth : 32, tileHeight : 32 });
   var miniMap = new TileMap(mini, mtiles);
-
-//  var player = new PlayerCharacter();
 
   $doodle.canvas('#myScreen');
 
@@ -28,6 +26,8 @@ var startDemo = function () {
   window.myScreen = myScreen;
   window.sprites = tiles;
   window.map = map;
+  window.player = player;
+  window.miniMap = miniMap;
 
   var fps = document.getElementById('fps');
   var scroll_x = document.getElementById('scroll_x');
@@ -57,14 +57,6 @@ var startDemo = function () {
     map.old.x = map.x;
     map.old.y = map.y;
 
-    if (map.velocity.x > tile_size) {
-      map.velocity.x = tile_size;
-    }
-
-    if (map.velocity.y > tile_size) {
-      map.velocity.y = tile_size;
-    }
-
     map.x = map.x + map.velocity.x;
     map.y = map.y + map.velocity.y;
 
@@ -78,7 +70,6 @@ var startDemo = function () {
     player.map.y = map.scroll.y + Math.floor((this.height / tile_size) / 2);
 
     var current_tiles = map.getSection(player.map.x - 1, player.map.y - 1, 4, 4);
-    miniMap.loadMap({data : current_tiles});
 
     if (current_tiles[1][1] !== 0) {
       map.y = map.old.y;
@@ -121,8 +112,10 @@ var startDemo = function () {
   }
 
   this.canvas.clear();
+
+  map.updateObjects();  
   map.draw();
-        
+  map.drawObjects();
 
   $doodle.rect({
     x:(player.map.x - map.scroll.x) * (tiles.tileWidth),
@@ -130,7 +123,6 @@ var startDemo = function () {
     width:(sprites.tileWidth * map.zoom), height : (sprites.tileHeight * map.zoom) ,fill : 'red'}).draw();
 
   scroll_x.innerHTML = map.scroll.x;
-
   scroll_y.innerHTML = map.scroll.y;
   tile_info.innerHTML = current_tiles[2][1];
   fps.innerHTML = this.fps;
@@ -147,7 +139,7 @@ var startDemo = function () {
 /// 
 
 var keyboard = function () {
-  var keys = {37 : 'left', 38 : 'up', 39 : 'right', 40 : 'down', 61 : 'plus', 109 : 'minus'};
+  var keys = {17 : 'control', 32 : 'space', 37 : 'left', 38 : 'up', 39 : 'right', 40 : 'down', 61 : 'plus', 109 : 'minus'};
   document.addEventListener('keydown', function (e) {
     if (e.keyCode in keys) {
       switch (keys[e.keyCode]) {
@@ -170,6 +162,12 @@ var keyboard = function () {
         case 'minus':
           map.zoom--;
           break;
+        case 'space':
+          map.spawnObject('bullet');
+          break;
+        case 'control':
+          map.spawnObject('grenade');
+          break;
       }
     }
   }, false);
@@ -185,6 +183,40 @@ window.map_data = {
   zoom : 1,
   scroll : {x : 0, y : 0},
   velocity : {x : 0, y : 0},
+  objectTypes : {
+    'frog' : {
+      vel_x : 5,
+      vel_y : -10,
+      dir : 'right',
+      jumpTimer : null,
+      jump : function () {
+        this.y -= 20;
+        this.vel_x = this.dir === 'left' ? 5 : -5;
+        this.vel_y = -10;
+        this.dir = this.vel_x > 0 ? 'right' : 'left';
+      },
+      update : function () {
+        if (null === this.jumpTimer) {
+          var self = this;
+          this.jumpTimer = setTimeout(function () {
+            self.jump.call(self);
+            self.jumpTimer = null;
+          }, 1700);
+        }
+      }
+    },
+    'bullet' : {
+      width : 10,
+      height : 2,
+      vel_x : 5,
+      gravity : false,
+      collision : false,
+    },
+    'grenade' : {
+      vel_x : 10,
+      vel_y : -10,
+    }
+  },
   data : [
     [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
     [9, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
