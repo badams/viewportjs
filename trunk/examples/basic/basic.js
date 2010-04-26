@@ -2,7 +2,7 @@
 function startDemo() {
 
   // create a new viewport (800x600 named "basic")
-  var viewport = new ViewPort('basic', 800, 600);
+  var viewport = new ViewPort('basic', 320, 480);
 
   // create an object to keep track of our coords
   var ball = {x : 100, y : 100, vel_x : 4, vel_y : 6,radius : 10};
@@ -25,7 +25,7 @@ function startDemo() {
     ball.x += ball.vel_x; 
     ball.y += ball.vel_y;
 
-    this.canvas.clear(); // clear the screen.
+//    this.canvas.clear(); // clear the screen.
 
     // this draws a circle where the 'player' should be. 
     $doodle.circle({x : ball.x, y : ball.y, radius : ball.radius, fill : 'red'}).draw();
