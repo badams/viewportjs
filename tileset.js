@@ -18,10 +18,10 @@
   this.TileSet.prototype = {
     drawTile : function (sx, sy, x, y, zoom) {
       if (0 !== sx) {
-        var srcX = (this.margin + (this.tileWidth * sx) + (this.tileMargin * sx));      
-        var srcY = (this.margin + (this.tileHeight * sy) + this.tileMargin * sy);
-        var targetWidth = (this.tileWidth * zoom);
-        var targetHeight = (this.tileHeight * zoom);
+        var srcX = (this.margin + (this.tileWidth * sx) + (this.tileMargin * sx)) >> 0;      
+        var srcY = (this.margin + (this.tileHeight * sy) + this.tileMargin * sy) >> 0;
+        var targetWidth = (this.tileWidth * zoom) >> 0;
+        var targetHeight = (this.tileHeight * zoom) >> 0;
         this.viewport.context.drawImage(this.image, srcX, srcY, this.tileWidth, this.tileHeight, x, y, targetWidth, targetHeight);
       }
     },
